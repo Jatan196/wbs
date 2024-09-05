@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+// import { User } from "./userModel.js";
 
 const jobModel = new mongoose.Schema({
     title:{
@@ -13,10 +13,14 @@ const jobModel = new mongoose.Schema({
     closeDate:{
         type:String
     },
-    applied:{
-        type:Boolean
-    },
-   
+    appliedBy:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
+    }],
 
 },{timestamps:true});
-export const Job = mongoose.model("Job",jobModel);
+ const Job = mongoose.model("Job",jobModel);
+// const MyModel = mongoose.model('Test', new mongoose.Schema({ name: String }));
+// // Works
+// await MyModel.findOne();
+export default Job;

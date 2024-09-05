@@ -1,10 +1,12 @@
 import { Department } from '../models/deptModel.js';
-import { Job } from '../models/jobModel.js';
+//import { Job } from '../../models/jobModel.js';
 import axios from 'axios';
+import Job from '../models/jobModel.js';
 import * as  cheerio from 'cheerio';
 
-const jobScraper = async (URL, deptId) => {
-    try {
+export const jobScraper = async (URL, deptId) => {
+    try{
+        
         const response = await axios.get(URL, { headers: { 'User-Agent': 'axios' } });
         const $ = cheerio.load(response.data);  // Load the HTML into cheerio
         console.log("Successfully fetched");
@@ -17,10 +19,10 @@ const jobScraper = async (URL, deptId) => {
 
             const cells = $(row).find('td');  // Find all <td> elements in the row
             const result = {
-                title: cells.eq(0).text().trim(),
-                publishDate: cells.eq(1).text().trim(),
-                lastDate: cells.eq(2).text().trim(),
-                downloadFile: cells.eq(3).find('a').attr('href'), // Link to the PDF file
+                title: cells.eq(1).text().trim(),
+                publishDate: cells.eq(2).text().trim(),
+                lastDate: cells.eq(3).text().trim(),
+                // downloadFile: cells.eq(3).find('a').attr('href'), // Link to the PDF file
             };
 
             results.push(result);
@@ -31,7 +33,7 @@ const jobScraper = async (URL, deptId) => {
         console.log(currJobs);
         // Filter out jobs that are already present in the current jobs
         const newJobs = results.filter((resultJob) => {
-            return !currJobs.jobs.some((currJob) => currJob.title === resultJob.title);
+            return !currJobs?.jobs.some((currJob) => currJob.title === resultJob.title);
         });
 
         // Insert the new jobs and collect their IDs
@@ -46,7 +48,7 @@ const jobScraper = async (URL, deptId) => {
             { _id: deptId },
             { $push: { jobs: { $each: newJobIds } } }
         );
-
+ 
 
         // search for jobs in job doc 
         // if not found ,then make new and add in dept array, 
@@ -61,8 +63,20 @@ const jobScraper = async (URL, deptId) => {
     }
 };
 
-
-const deptScraper = async (URL) => {
+export const allScraper = async () => {
+    try {
+        const depts = await Department.find();
+        await Promise.all(depts.map(async (dept) => {
+            if (dept.recruitmentLink) {
+                await jobScraper(dept.recruitmentLink, dept._id);
+            }
+        }));
+        console.log("All departments processed successfully.");
+    } catch (error) {
+        console.error("Error in allScraper:", error);
+    }
+};
+export const deptScraper = async (URL) => {
 
     try {
         const response = await axios.get(URL, { headers: { 'User-Agent': 'axios' } });
@@ -84,45 +98,21 @@ const deptScraper = async (URL) => {
             results.push(result);
         });
         try {
-            /*  await Promise.all(results?.map(async (dept) => {
-                  if (dept.name && dept.recruitmentLink) {
-                      const departmentData = {
-                          name: dept.name,
-                          recruitmentLink: dept.recruitmentLink,
-                          jobs: []
-                      };
-                      console.log("-----------");
-                     const id=await Department.create(departmentData);
-                     console.log(id,"-----------");
-                      // const newDept = new Department(departmentData);
-                    //  await newDept.save(); // Save the department
-                  }
-              }));
-              // const testDept = new Department({
-              //     name: 'Test Department',
-              //     recruitmentLink: 'http://example.com',
-              //     jobs: []
-              // });
-              
-              // try {
-              //     await testDept.save();
-              //     console.log('Test department saved successfully');
-              // } catch (error) {
-              //     console.error('Error saving test department:', error);
-              // }
-  
-              // const dept=await Department.findById("66c1d41aed14c9f061e2349d");
-  
-              // console.log(dept);
-              // console.log('All departments saved successfully');
-  */
-            const departmentData = {
-                name: "asdfa",
-                recruitmentLink: "dept.recruitmentLink",
-                jobs: []
-            };
-            console.log("-----------");
-            const id = await Department.create(departmentData);
+            await Promise.all(results?.map(async (dept) => {
+                if (dept.name && dept.recruitmentLink) {
+                    const departmentData = {
+                        name: dept.name,
+                        recruitmentLink: dept.recruitmentLink,
+                        jobs: []
+                    };
+
+                    console.log("-----------");
+                    const id = await Department.create(departmentData);
+                    console.log(id, "-----------");
+
+                }
+            }));
+
         } catch (error) {
             console.error('Error saving departments:', error);
         }
@@ -137,13 +127,5 @@ const deptScraper = async (URL) => {
 //deptScraper("https://www.ncs.gov.in/pages/govt-job-vacancies.aspx");
 //jobScraper("https://dot.gov.in/all-vacancies#");
 
-const jobData = {
-    title: "asdfa",
-    publishDate: "dept.recruitmentLink",
-    closeDate: "sfa"
-};
-console.log("-----------");
-const id = await Job.create(jobData);
-console.log(id);
 
 

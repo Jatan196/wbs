@@ -13,6 +13,10 @@ const userModel = new mongoose.Schema({
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email address']
     },
+    password:{
+        type: String,
+        required: true,
+    },
     phno:{
         type:String,
         required:true
@@ -29,4 +33,4 @@ const userModel = new mongoose.Schema({
     
 
 },{timestamps:true});
-export const User = mongoose.model("User",userModel); // it is the collection / table named User with above specieed schema
+export const User = mongoose.model('User',userModel); // it is the collection / table named User with above specieed schema

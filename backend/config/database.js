@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
-const MONGO_URI="mongodb+srv://tandonjatan:Metajatan1@cluster0.ol1ubyc.mongodb.net/";
+//const MONGO_URI="mongodb+srv://tandonjatan:skd@cluster0.vne0j.mongodb.net/";
 
-await mongoose.connect(MONGO_URI,{
+await mongoose.connect(process.env.MONGO_URI,{
     // useNewUrlParser: true,
     // useUnifiedTopology: true,
     // serverSelectionTimeoutMS: 5000 
 }).then((data) => {
-    console.log('Database gets connected',data);
-  
+    console.log('Database gets connected');
+  3
 }).catch((error)=>{
     console.log(error);
     console.log('hi');
